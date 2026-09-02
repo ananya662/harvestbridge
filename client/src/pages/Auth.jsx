@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './Auth.css';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://harvestbridge-vuh8.onrender.com/api/auth';
 
 export default function Auth({ onSuccess }) {
   const [mode, setMode] = useState('login');

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './Dashboard.css';
 
-const API_URL = 'http://localhost:5000/api/listings';
+const API_URL = 'https://harvestbridge-vuh8.onrender.com/api/listings';
 
 export default function BuyerBrowse() {
   const [listings, setListings] = useState([]);

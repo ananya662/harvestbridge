@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import './Dashboard.css';
 
-const API_URL = 'http://localhost:5000/api/listings';
-const WEATHER_URL = 'http://localhost:5000/api/weather';
+const API_URL = 'https://harvestbridge-vuh8.onrender.com/api/listings';
+const WEATHER_URL = 'https://harvestbridge-vuh8.onrender.com/api/weather';
 
 export default function FarmerDashboard() {
   const [listings, setListings] = useState([]);
