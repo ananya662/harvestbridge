@@ -37,34 +37,40 @@ export default function FarmerDashboard() {
   };
 
   useEffect(() => {
-  const location = user.location || 'Lucknow';
+    fetchMyListings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  let cancelled = false;
+  useEffect(() => {
+    const location = user.location || 'Lucknow';
 
-  const loadWeather = async () => {
-    try {
-      const res = await fetch(
-        `${WEATHER_URL}?location=${encodeURIComponent(location)}`
-      );
+    let cancelled = false;
 
-      const data = await res.json();
+    const loadWeather = async () => {
+      try {
+        const res = await fetch(
+          `${WEATHER_URL}?location=${encodeURIComponent(location)}`
+        );
 
-      console.log('Weather response:', data);
+        const data = await res.json();
 
-      if (!cancelled && res.ok) {
-        setWeather(data);
+        console.log('Weather response:', data);
+
+        if (!cancelled && res.ok) {
+          setWeather(data);
+        }
+      } catch (error) {
+        console.error('Weather error:', error);
       }
-    } catch (error) {
-      console.error('Weather error:', error);
-    }
-  };
+    };
 
-  loadWeather();
+    loadWeather();
 
-  return () => {
-    cancelled = true;
-  };
-}, []);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
