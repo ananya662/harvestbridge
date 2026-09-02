@@ -172,3 +172,39 @@
   background: #F0EBDD;
   color: #6B4226;
 }
+.weather-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #E8F3E9;
+  border: 1px solid #C8DFC9;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.weather-card.alert {
+  background: #FBEAEA;
+  border-color: #F0C4C0;
+}
+
+.weather-location {
+  font-weight: 600;
+  color: #1F3D2B;
+  font-size: 14px;
+  margin: 0;
+}
+
+.weather-condition {
+  font-size: 13px;
+  color: #6B4226;
+  margin: 2px 0 0;
+  text-transform: capitalize;
+}
+
+.weather-warning {
+  font-size: 13px;
+  font-weight: 600;
+  color: #B3261E;
+  margin: 0;
+}

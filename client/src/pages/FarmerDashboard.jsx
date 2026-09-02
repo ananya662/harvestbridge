@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import './Dashboard.css';
 
 const API_URL = 'http://localhost:5000/api/listings';
+const WEATHER_URL = 'http://localhost:5000/api/weather';
 
 export default function FarmerDashboard() {
   const [listings, setListings] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [weather, setWeather] = useState(null);
   const [form, setForm] = useState({
     cropName: '',
     quantity: '',
@@ -21,14 +23,13 @@ export default function FarmerDashboard() {
   const token = localStorage.getItem('token');
 
   const fetchMyListings = async () => {
-    setLoading(true);
     try {
       const res = await fetch(`${API_URL}/mine`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       setListings(data);
-    } catch  {
+    } catch (err) {
       setError('Could not load your listings');
     } finally {
       setLoading(false);
@@ -36,8 +37,34 @@ export default function FarmerDashboard() {
   };
 
   useEffect(() => {
-   
-  }, []);
+  const location = user.location || 'Lucknow';
+
+  let cancelled = false;
+
+  const loadWeather = async () => {
+    try {
+      const res = await fetch(
+        `${WEATHER_URL}?location=${encodeURIComponent(location)}`
+      );
+
+      const data = await res.json();
+
+      console.log('Weather response:', data);
+
+      if (!cancelled && res.ok) {
+        setWeather(data);
+      }
+    } catch (error) {
+      console.error('Weather error:', error);
+    }
+  };
+
+  loadWeather();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -65,7 +92,7 @@ export default function FarmerDashboard() {
       setForm({ cropName: '', quantity: '', unit: 'quintal', pricePerUnit: '', location: '', description: '' });
       setShowForm(false);
       fetchMyListings();
-    } catch  {
+    } catch (err) {
       setError('Could not reach the server');
     }
   };
@@ -78,6 +105,18 @@ export default function FarmerDashboard() {
       </header>
 
       <div className="dash-container">
+        {weather && (
+          <div className={weather.isRainAlert ? 'weather-card alert' : 'weather-card'}>
+            <div>
+              <p className="weather-location">{weather.location}</p>
+              <p className="weather-condition">{weather.description}, {Math.round(weather.temperature)}°C</p>
+            </div>
+            {weather.isRainAlert && (
+              <p className="weather-warning">⚠ Rain expected — consider covering your harvest</p>
+            )}
+          </div>
+        )}
+
         <div className="dash-top">
           <h1>Your listings</h1>
           <button className="dash-btn-primary" onClick={() => setShowForm(!showForm)}>
