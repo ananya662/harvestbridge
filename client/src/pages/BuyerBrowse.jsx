@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './Dashboard.css';
 
 const API_URL = 'https://harvestbridge-vuh8.onrender.com/api/listings';
+const ORDER_URL = 'https://harvestbridge-vuh8.onrender.com/api/orders';
 
 export default function BuyerBrowse() {
   const [listings, setListings] = useState([]);
@@ -9,8 +10,13 @@ export default function BuyerBrowse() {
   const [error, setError] = useState('');
   const [cropSearch, setCropSearch] = useState('');
   const [locationSearch, setLocationSearch] = useState('');
+  const [orderingId, setOrderingId] = useState(null);
+  const [orderQty, setOrderQty] = useState('');
+  const [orderMsg, setOrderMsg] = useState('');
+  const [orderStatus, setOrderStatus] = useState({});
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = localStorage.getItem('token');
 
   const fetchListings = async (crop = '', location = '') => {
     setLoading(true);
@@ -37,6 +43,41 @@ export default function BuyerBrowse() {
   const handleSearch = (e) => {
     e.preventDefault();
     fetchListings(cropSearch, locationSearch);
+  };
+
+  const openOrderForm = (id) => {
+    setOrderingId(orderingId === id ? null : id);
+    setOrderQty('');
+    setOrderMsg('');
+  };
+
+  const sendOrderRequest = async (listing) => {
+    try {
+      const res = await fetch(ORDER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          listing: listing._id,
+          farmer: listing.farmer._id,
+          quantityRequested: orderQty,
+          message: orderMsg,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setOrderStatus({ ...orderStatus, [listing._id]: data.message || 'Could not send request' });
+        return;
+      }
+
+      setOrderStatus({ ...orderStatus, [listing._id]: 'Order request sent!' });
+      setOrderingId(null);
+    } catch {
+      setOrderStatus({ ...orderStatus, [listing._id]: 'Could not reach server' });
+    }
   };
 
   return (
@@ -86,6 +127,40 @@ export default function BuyerBrowse() {
                   <a className="dash-card-contact" href={`tel:${item.farmer.phone}`}>
                     Contact: {item.farmer.phone}
                   </a>
+                )}
+
+                {orderStatus[item._id] && (
+                  <p className="dash-order-status">{orderStatus[item._id]}</p>
+                )}
+
+                <button className="dash-btn-primary dash-order-btn" onClick={() => openOrderForm(item._id)}>
+                  {orderingId === item._id ? 'Cancel' : 'Send Order Request'}
+                </button>
+
+                {orderingId === item._id && (
+                  <div className="dash-order-form">
+                    <label>Quantity needed ({item.unit})</label>
+                    <input
+                      type="number"
+                      value={orderQty}
+                      onChange={(e) => setOrderQty(e.target.value)}
+                      placeholder="e.g. 10"
+                    />
+                    <label>Message (optional)</label>
+                    <textarea
+                      rows="2"
+                      value={orderMsg}
+                      onChange={(e) => setOrderMsg(e.target.value)}
+                      placeholder="Any details for the farmer"
+                    />
+                    <button
+                      className="dash-btn-primary"
+                      onClick={() => sendOrderRequest(item)}
+                      disabled={!orderQty}
+                    >
+                      Confirm Request
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

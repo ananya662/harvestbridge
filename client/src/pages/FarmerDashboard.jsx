@@ -3,9 +3,11 @@ import './Dashboard.css';
 
 const API_URL = 'https://harvestbridge-vuh8.onrender.com/api/listings';
 const WEATHER_URL = 'https://harvestbridge-vuh8.onrender.com/api/weather';
+const ORDER_URL = 'https://harvestbridge-vuh8.onrender.com/api/orders';
 
 export default function FarmerDashboard() {
   const [listings, setListings] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,39 +38,38 @@ export default function FarmerDashboard() {
     }
   };
 
+  const fetchMyOrders = async () => {
+    try {
+      const res = await fetch(`${ORDER_URL}/farmer/my-orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      // silently ignore
+    }
+  };
+
   useEffect(() => {
     fetchMyListings();
+    fetchMyOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const location = user.location || 'Lucknow';
-
     let cancelled = false;
-
     const loadWeather = async () => {
       try {
-        const res = await fetch(
-          `${WEATHER_URL}?location=${encodeURIComponent(location)}`
-        );
-
+        const res = await fetch(`${WEATHER_URL}?location=${encodeURIComponent(location)}`);
         const data = await res.json();
-
-        console.log('Weather response:', data);
-
-        if (!cancelled && res.ok) {
-          setWeather(data);
-        }
-      } catch (error) {
-        console.error('Weather error:', error);
+        if (!cancelled && res.ok) setWeather(data);
+      } catch {
+        // silently ignore
       }
     };
-
     loadWeather();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -103,6 +104,22 @@ export default function FarmerDashboard() {
     }
   };
 
+  const respondToOrder = async (orderId, status) => {
+    try {
+      await fetch(`${ORDER_URL}/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      fetchMyOrders();
+    } catch {
+      // silently ignore
+    }
+  };
+
   return (
     <div className="dash-page">
       <header className="dash-header">
@@ -120,6 +137,38 @@ export default function FarmerDashboard() {
             {weather.isRainAlert && (
               <p className="weather-warning">⚠ Rain expected — consider covering your harvest</p>
             )}
+          </div>
+        )}
+
+        {orders.length > 0 && (
+          <div className="dash-orders">
+            <h2>Order Requests</h2>
+            <div className="dash-orders-list">
+              {orders.map((order) => (
+                <div className="dash-order-card" key={order._id}>
+                  <div>
+                    <p className="dash-order-crop">{order.listing?.cropName || 'Crop'}</p>
+                    <p className="dash-order-info">
+                      {order.quantityRequested} requested by {order.buyer?.name || 'Buyer'}
+                    </p>
+                    {order.message && <p className="dash-order-msg">"{order.message}"</p>}
+                    {order.buyer?.phone && (
+                      <a className="dash-card-contact" href={`tel:${order.buyer.phone}`}>
+                        Contact: {order.buyer.phone}
+                      </a>
+                    )}
+                  </div>
+                  {order.status === 'pending' ? (
+                    <div className="dash-order-actions">
+                      <button className="dash-btn-accept" onClick={() => respondToOrder(order._id, 'accepted')}>Accept</button>
+                      <button className="dash-btn-decline" onClick={() => respondToOrder(order._id, 'declined')}>Decline</button>
+                    </div>
+                  ) : (
+                    <span className={`dash-card-status ${order.status}`}>{order.status}</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
