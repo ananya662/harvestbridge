@@ -3,7 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
-const listingRoutes = require('./routes/listings');
+const listingRoutes = require('./routes/Listings');
 const weatherRoutes = require('./routes/weather');
 const orderRoutes = require('./routes/orders');
 
@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/listings', ListingRoutes);
+app.use('/api/listings', listingRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/orders', orderRoutes);
 
