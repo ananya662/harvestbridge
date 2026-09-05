@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/listings', listingRoutes);
+app.use('/api/listings', ListingRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/orders', orderRoutes);
 
